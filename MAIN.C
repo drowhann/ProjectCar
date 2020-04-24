@@ -1,8 +1,27 @@
-// Project of BIT first semester
-//Starting date:20 April,2020
-//Completion date:-----------
-//A project by Rohan Dhimal
+/*
+Project of BIT first semester:
 
+##^^A 2D car racing game^^##
+
+Description:
+
+
+Starting date:20 April,2020
+
+Completion date:-----------
+
+A project by:
+-Rohan Dhimal
+-Prahlad Neupane
+-Puskar Humagain
+-Bibek Dhital
+
+Special Thanks to 
+
+
+*/
+
+//libraries 
 #include <stdio.h>
 #include <stdlib.h>
 #include <graphics.h>
@@ -10,7 +29,10 @@
 #include <dos.h>
 #include <time.h> 
 
-int x,y,setgraph=0,xline1,xline2,trackLength;
+//global variables
+int x,y,setgraph=0,xline1,xline2,trackLength,speed;
+long int score;
+char msg[100];
 struct enemycarPosition{
 	int x1,x2,y1,y2;
 } e;
@@ -18,7 +40,7 @@ struct mycarPosition{
 	int x1,x2,y1,y2;
 } m;
 
-
+//user-defined functions
 void setgraphics();
 void closegraphics();
 void startgame();
@@ -26,7 +48,11 @@ void loadingscreen();
 void mainmenu();
 void mycar(int);
 void enemycar(int *);
-
+int collisionDetection(struct mycarPosition mc,struct enemycarPosition ec);
+void draw(long int,int);
+int scoreincrease(long int,int);
+void pause();
+void gameover(long int);
 
 
 
@@ -63,7 +89,7 @@ void loadingscreen(){
 		rectangle(x/2-100,y-100,x/2-100+i,y-75);
 		rectangle(x/2-100,y-100,x/2+100,y-75);
 		i++;
-		delay(10);
+		delay(5);
 	}
 	outtextxy(x/2-100,100,"Press any key to continue:");
 	getch();
@@ -77,6 +103,9 @@ void mainmenu(){
 	
 	while(1){
 		cleardevice();
+
+		score=0;
+		speed=1;
 
 		outtextxy(x/2-100,100,"A Car Racing Game");
 	
@@ -113,28 +142,31 @@ void mainmenu(){
 
 
 void startgame(){
-	int i,accident=0,mycarLocation=1;
+	int i,mycarLocation=1,collision=0;
 	int *enemycarPos;
-	char msg[100];
 	cleardevice();
+	randomize();
 
 	for(i=3;i!=0;i--){
 		cleardevice();
 		sprintf(msg,"Starting in %d...",i);
 		outtextxy(x/2-50,100,msg);
-		delay(1000);
+		delay(500);
 	}
 	xline1=(x-300)/2;
 	xline2=300+xline1;
 	trackLength=xline2-xline1;
 	*enemycarPos=0;
 
-	while(accident==0){
+	while(1){
 		cleardevice();
-		line(xline1,0,xline1,y);
-		line(xline2,0,xline2,y);
+		draw(score,speed);
 		enemycar(enemycarPos);
 		mycar(mycarLocation);
+		collision=collisionDetection(m,e);
+		if (collision==1){
+			gameover(score);
+		}
 
 
 		if(kbhit()){
@@ -149,6 +181,10 @@ void startgame(){
 					if(mycarLocation!=2)
 						mycarLocation++;
 					break;
+				case 'p':
+				case 'P':
+					pause();
+					break;
 				case 'X':
 				case 'x':
 					exit(0);
@@ -159,28 +195,40 @@ void startgame(){
 
 			}
 		}
-		*enemycarPos=*enemycarPos+1;
-		delay(5);
+		*enemycarPos=*enemycarPos+speed;
+		score=score+speed*1;
+		speed=speedincrease(score,speed);
+		delay(10);
 
 	}
-	getch();
 }
 
 void mycar(int carLocation){
 	m.x1=xline1+(trackLength/3*carLocation)+5;
 	m.x2=xline1+(trackLength/3*(carLocation+1))-5;
-	rectangle(m.x1,y-75,m.x2,y-5);
-	rectangle(m.x1+20,y-75,m.x2-20,y-5);
-	rectangle(m.x1+10,y-100,m.x2-10,y-75);
-	circle(m.x1+5,y-86,5);
-	circle(m.x2-5,y-86,5);
+	m.y1=y-5;
+	m.y2=y-100;
+	rectangle(m.x1,m.y1-70,m.x2,m.y1);//big block
+	rectangle(m.x1+20,m.y2+25,m.x2-20,m.y1);//middle block
+	rectangle(m.x1+10,m.y2,m.x2-10,m.y2+25);//front block
+	circle(m.x1+5,m.y2+14,5);//left tyre
+	circle(m.x2-5,m.y2+14,5);//right tyre
+	setfillstyle(SOLID_FILL,YELLOW);
+	floodfill(m.x1+1,m.y1-69,BLUE);//big block left
+	floodfill(m.x2-1,m.y1-1,BLUE);//big block right
+	floodfill(m.x1+11,m.y2+1,BLUE);//front block
+	setfillstyle(SOLID_FILL,RED);
+	floodfill(m.x1+5,m.y2+14,BLUE);//left tyre
+	floodfill(m.x2-5,m.y2+14,BLUE);//right tyre
+	setfillstyle(LTSLASH_FILL,RED);
+	floodfill(m.x1+21,m.y2+26,BLUE);//middle block
+
 }
 
 void enemycar(int *i){
 	static int enemycarLoc;
 	if (*i==0){
-		srand(time(0));
-		enemycarLoc=rand()%3;
+		enemycarLoc=random(100)%3;
 		e.x1=xline1+5+(trackLength/3)*enemycarLoc;
 		e.x2=xline1+(trackLength/3*(enemycarLoc+1))-5;
 	}
@@ -190,6 +238,102 @@ void enemycar(int *i){
 	rectangle(e.x1+10,e.y1+65,e.x2-10,e.y2);
 	circle(e.x1+5,e.y2-9,5);
 	circle(e.x2-5,e.y2-9,5);
-	if(*i+5>y)
-		*i=-1;
+	if(e.y1>y)
+		*i=-speed;
 }
+
+int collisionDetection(struct mycarPosition mc,struct enemycarPosition ec  ){
+	if (ec.x1>mc.x2){
+		return 0;
+	}
+	else{
+		if(ec.x2<mc.x1) {
+			return 0;
+		}else{
+			if(ec.y1>mc.y1){
+				return 0;
+			}else{
+				if(ec.y2<mc.y2){
+					return 0;
+				}else{
+					return 1;
+				}
+			}
+		}
+	}
+	
+}
+
+void draw(long int sc,int sp){
+	line(xline1,0,xline1,y);
+	line(xline2,0,xline2,y);
+	sprintf(msg, "Score : %ld ",sc);
+	outtextxy(xline2+20,y/2,msg);
+	sprintf(msg,"Speed: %d",sp);
+	outtextxy(xline1-100,y/2,msg);
+
+}
+
+int speedincrease(long int sc ,int sp){
+
+	switch(sp){
+		case 1: 
+			if (sc>1000)
+				sp++;
+			break;
+		case 2: 
+			if (sc>2000)
+				sp++;
+			break;
+		case 3: 
+			if (sc>4000)
+				sp++;
+			break;
+		case 4: 
+			if (sc>8000)
+				sp++;
+			break;
+		case 5: 
+			if (sc>16000)
+				sp++;
+			break;
+		case 6: 
+			if (sc>32000)
+				sp++;
+			break;
+		case 7: 
+			if (sc>64000)
+				sp++;
+			break;
+		case 8: 
+			if (sc>120000)
+				sp++;
+			break;
+		case 9: 
+			if (sc>240000)
+				sp++;
+			break;
+		default:
+			break;																	
+	}
+	return sp;
+
+
+}
+
+void pause(){
+	outtextxy(x/2-10,y/2,"Paused");
+	getch();
+}
+
+void gameover(long int sc){
+	outtextxy(x/2,y/2,"Game Over");
+	getch();
+	cleardevice();
+	sprintf(msg,"Your final score is %ld .",sc);
+	outtextxy(x/2-100,y/2,msg);
+	getch();
+	mainmenu();
+
+}
+
