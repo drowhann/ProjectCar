@@ -30,7 +30,7 @@ Special Thanks to
 #include <time.h> 
 
 //global variables
-int x,y,setgraph=0,xline1,xline2,trackLength,speed;
+int x,y,xline1,xline2,trackLength,speed;
 long int score;
 char msg[100];
 struct enemycarPosition{
@@ -42,7 +42,6 @@ struct mycarPosition{
 
 //user-defined functions
 void setgraphics();
-void closegraphics();
 void startgame();
 void loadingscreen();
 void mainmenu();
@@ -53,20 +52,21 @@ void draw(long int,int);
 int scoreincrease(long int,int);
 void pause();
 void gameover(long int);
+void defaultColor();
+void colorSelect(int,int);
+
 
 
 
 int main(){
 
-	if (setgraph==0)
-	 setgraphics();
+	setgraphics();
 	x=getmaxx();
 	y=getmaxy();
-	setbkcolor(WHITE);
-	setcolor(BLUE);
+	defaultColor();
 	loadingscreen();
 	mainmenu();
-	closegraphics();
+	closegraph();
 	return 0;
 
 }
@@ -74,31 +74,33 @@ int main(){
 void setgraphics() {
 	int gd=DETECT,gm;
 	initgraph(&gd,&gm,"C://turboc3//bgi");
-	setgraph=1;
-}
-
-void closegraphics(){
-	closegraph();
-	setgraph=0;
 }
 
 void loadingscreen(){
 	int i=0;
 	cleardevice();
+	settextstyle(4,0,5);//font direction size 
+	outtextxy(x/2-200,y/2,"A 2D Car Racing Game");
+	delay(1000);
+
+	settextstyle(3,0,1);
+	outtextxy(x/2-100,y-120,"LOADING....");
+
 	while (i!=200){
-		rectangle(x/2-100,y-100,x/2-100+i,y-75);
-		rectangle(x/2-100,y-100,x/2+100,y-75);
+		rectangle(x/2-100,y-85,x/2-100+i,y-75);
+		rectangle(x/2-100,y-85,x/2+100,y-75);
 		i++;
-		delay(5);
+		delay(10);
 	}
-	outtextxy(x/2-100,100,"Press any key to continue:");
-	getch();
 }
 
 void mainmenu(){
-	int selection=1;
+	int selection=0;
 
 	cleardevice();
+
+	settextstyle(3,0,3);
+	defaultColor();
 
 	
 	while(1){
@@ -107,28 +109,27 @@ void mainmenu(){
 		score=0;
 		speed=1;
 
-		outtextxy(x/2-100,100,"A Car Racing Game");
 	
-		outtextxy(x/2-100,125,"Play");
+		outtextxy(x/2-100,100,"Play");
 		outtextxy(x/2-100,150,"Exit");
 		circle(x/2-110,125,5);
-		circle(x/2-110,150,5);
+		circle(x/2-110,175,5);
 		setfillstyle(SOLID_FILL,BLUE);
-		floodfill(x/2-110,100+25*selection,BLUE);
+		floodfill(x/2-110,125+50*selection,BLUE);
 
 		switch(getch()){
 			case 'W': 
 			case 'w':
-				if (selection!=1)
+				if (selection!=0)
 					selection--;
 				break;
 			case 's':
 			case 'S':
-				if (selection!=2)
+				if (selection!=1)
 					selection++;
 				break;
 			case 13://enterkey - CR
-				if (selection==1)
+				if (selection==0)
 					startgame();
 				else
 					exit(0);
@@ -146,6 +147,8 @@ void startgame(){
 	int *enemycarPos;
 	cleardevice();
 	randomize();
+	setbkcolor(WHITE);
+	setcolor(BLUE);
 
 	for(i=3;i!=0;i--){
 		cleardevice();
@@ -153,8 +156,11 @@ void startgame(){
 		outtextxy(x/2-50,100,msg);
 		delay(500);
 	}
-	xline1=(x-300)/2;
-	xline2=300+xline1;
+
+	colorSelect(7,WHITE);//lightgray
+	settextstyle(0,0,1);
+	xline1=x/2-75;
+	xline2=x/2+75;
 	trackLength=xline2-xline1;
 	*enemycarPos=0;
 
@@ -204,24 +210,16 @@ void startgame(){
 }
 
 void mycar(int carLocation){
-	m.x1=xline1+(trackLength/3*carLocation)+5;
-	m.x2=xline1+(trackLength/3*(carLocation+1))-5;
-	m.y1=y-5;
-	m.y2=y-100;
-	rectangle(m.x1,m.y1-70,m.x2,m.y1);//big block
-	rectangle(m.x1+20,m.y2+25,m.x2-20,m.y1);//middle block
-	rectangle(m.x1+10,m.y2,m.x2-10,m.y2+25);//front block
-	circle(m.x1+5,m.y2+14,5);//left tyre
-	circle(m.x2-5,m.y2+14,5);//right tyre
-	setfillstyle(SOLID_FILL,YELLOW);
-	floodfill(m.x1+1,m.y1-69,BLUE);//big block left
-	floodfill(m.x2-1,m.y1-1,BLUE);//big block right
-	floodfill(m.x1+11,m.y2+1,BLUE);//front block
-	setfillstyle(SOLID_FILL,RED);
-	floodfill(m.x1+5,m.y2+14,BLUE);//left tyre
-	floodfill(m.x2-5,m.y2+14,BLUE);//right tyre
-	setfillstyle(LTSLASH_FILL,RED);
-	floodfill(m.x1+21,m.y2+26,BLUE);//middle block
+	m.x1=xline1+(trackLength/3*carLocation)+3;
+	m.x2=xline1+(trackLength/3*(carLocation+1))-3;
+	m.y1=y-3;
+	m.y2=y-50;
+	rectangle(m.x1,m.y1-35,m.x2,m.y1);//big block
+	rectangle(m.x1+10,m.y2+13,m.x2-10,m.y1);//middle block
+	rectangle(m.x1+5,m.y2,m.x2-5,m.y2+13);//front block
+	bar(m.x1+3,m.y2+3,m.x1+5,m.y2+13);//left tyre
+	bar(m.x2-3,m.y2+3,m.x2-5,m.y2+13);//right tyre
+
 
 }
 
@@ -229,15 +227,15 @@ void enemycar(int *i){
 	static int enemycarLoc;
 	if (*i==0){
 		enemycarLoc=random(100)%3;
-		e.x1=xline1+5+(trackLength/3)*enemycarLoc;
-		e.x2=xline1+(trackLength/3*(enemycarLoc+1))-5;
+		e.x1=xline1+3+(trackLength/3)*enemycarLoc;
+		e.x2=xline1+(trackLength/3*(enemycarLoc+1))-3;
 	}
-	e.y1=*i+5;
-	e.y2=*i+95;
-	rectangle(e.x1,e.y1,e.x2,e.y1+65);
-	rectangle(e.x1+10,e.y1+65,e.x2-10,e.y2);
-	circle(e.x1+5,e.y2-9,5);
-	circle(e.x2-5,e.y2-9,5);
+	e.y1=*i+3;
+	e.y2=*i+48;
+	rectangle(e.x1,e.y1,e.x2,e.y1+33);//big block
+	rectangle(e.x1+5,e.y1+33,e.x2-5,e.y2);//front block
+	bar(e.x1+3,e.y1+33,e.x1+5,e.y2-3);//left tyre
+	bar(e.x2-5,e.y1+33,e.x2-3,e.y2-3);//right tyre
 	if(e.y1>y)
 		*i=-speed;
 }
@@ -328,12 +326,24 @@ void pause(){
 
 void gameover(long int sc){
 	outtextxy(x/2,y/2,"Game Over");
+	delay(10);
 	getch();
 	cleardevice();
+	defaultColor();
 	sprintf(msg,"Your final score is %ld .",sc);
 	outtextxy(x/2-100,y/2,msg);
 	getch();
 	mainmenu();
 
+}
+
+void defaultColor(){
+	setbkcolor(WHITE);
+	setcolor(BLUE);
+}
+
+void colorSelect(int a,int b){
+	setbkcolor(a);
+	setcolor(b);
 }
 
