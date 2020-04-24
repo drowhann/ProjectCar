@@ -10,7 +10,14 @@
 #include <dos.h>
 #include <time.h> 
 
-int maxx,maxy,setgraph=0,xline1,xline2,trackLength;
+int x,y,setgraph=0,xline1,xline2,trackLength;
+struct enemycarPosition{
+	int x1,x2,y1,y2;
+} e;
+struct mycarPosition{
+	int x1,x2,y1,y2;
+} m;
+
 
 void setgraphics();
 void closegraphics();
@@ -18,14 +25,15 @@ void startgame();
 void loadingscreen();
 void mainmenu();
 void mycar(int);
+void enemycar(int *);
 
 
 int main(){
 
 	if (setgraph==0)
 	 setgraphics();
-	maxx=getmaxx();
-	maxy=getmaxy();
+	x=getmaxx();
+	y=getmaxy();
 	setbkcolor(WHITE);
 	setcolor(BLUE);
 	loadingscreen();
@@ -50,12 +58,12 @@ void loadingscreen(){
 	int i=0;
 	cleardevice();
 	while (i!=200){
-		rectangle(maxx/2-100,maxy-100,maxx/2-100+i,maxy-75);
-		rectangle(maxx/2-100,maxy-100,maxx/2+100,maxy-75);
+		rectangle(x/2-100,y-100,x/2-100+i,y-75);
+		rectangle(x/2-100,y-100,x/2+100,y-75);
 		i++;
 		delay(10);
 	}
-	outtextxy(maxx/2-100,100,"Press any key to continue:");
+	outtextxy(x/2-100,100,"Press any key to continue:");
 	getch();
 }
 
@@ -68,14 +76,14 @@ void mainmenu(){
 	while(1){
 		cleardevice();
 
-		outtextxy(maxx/2-100,100,"A Car Racing Game");
+		outtextxy(x/2-100,100,"A Car Racing Game");
 	
-		outtextxy(maxx/2-100,125,"Play");
-		outtextxy(maxx/2-100,150,"Exit");
-		circle(maxx/2-110,125,5);
-		circle(maxx/2-110,150,5);
+		outtextxy(x/2-100,125,"Play");
+		outtextxy(x/2-100,150,"Exit");
+		circle(x/2-110,125,5);
+		circle(x/2-110,150,5);
 		setfillstyle(SOLID_FILL,BLUE);
-		floodfill(maxx/2-110,100+25*selection,BLUE);
+		floodfill(x/2-110,100+25*selection,BLUE);
 
 		switch(getch()){
 			case 'W': 
@@ -103,33 +111,83 @@ void mainmenu(){
 
 
 void startgame(){
-	int i,,accident=0,mycarLocation=1;
+	int i,accident=0,mycarLocation=1;
+	int *enemycarPos;
 	char msg[100];
 	cleardevice();
 
 	for(i=3;i!=0;i--){
 		cleardevice();
 		sprintf(msg,"Starting in %d...",i);
-		outtextxy(maxx/2-50,100,msg);
+		outtextxy(x/2-50,100,msg);
 		delay(1000);
 	}
-	xline1=(maxx-300)/2;
+	xline1=(x-300)/2;
 	xline2=300+xline1;
 	trackLength=xline2-xline1;
+	*enemycarPos=0;
 
 	while(accident==0){
 		cleardevice();
-		line(xline1,0,xline1,maxy);
-		line(xline2,0,xline2,maxy);
+		line(xline1,0,xline1,y);
+		line(xline2,0,xline2,y);
+		enemycar(enemycarPos);
 		mycar(mycarLocation);
 
-		getch();
-		exit(0);
-	}
 
+		if(kbhit()){
+			switch(getch()){
+				case 'A':
+				case 'a':
+					if(mycarLocation!=0)
+						mycarLocation--;
+					break;
+				case 'd':
+				case 'D':
+					if(mycarLocation!=2)
+						mycarLocation++;
+					break;
+				case 'X':
+				case 'x':
+					exit(0);
+					break;
+				default:
+					break;
+
+
+			}
+		}
+		*enemycarPos=*enemycarPos+1;
+		delay(5);
+
+	}
 	getch();
 }
 
-void mycarLocation(int carLocation){
-	rectangle(xline1+(trackLength/3*mycarLocation)+5,maxxy-75,xline1+(trackLength/3*(mycarLocation+1))-5,maxxy-5);
+void mycar(int carLocation){
+	m.x1=xline1+(trackLength/3*carLocation)+5;
+	m.x2=xline1+(trackLength/3*(carLocation+1))-5;
+	rectangle(m.x1,y-75,m.x2,y-5);
+	rectangle(m.x1+20,y-75,m.x2-20,y-5);
+	rectangle(m.x1+10,y-100,m.x2-10,y-75);
+	circle(m.x1+5,y-86,5);
+	circle(m.x2-5,y-86,5);
+}
+
+void enemycar(int *i){
+	static int enemycarLoc;
+	if (*i==0){
+		srand(time(0));
+		enemycarLoc=rand()%3;
+		e.x1=xline1+5+(trackLength/3)*enemycarLoc;
+		e.x2=xline1+(trackLength/3*(enemycarLoc+1))-5;
+	}
+	e.y1=*i+5;
+	e.y2=*i+95;
+	rectangle(e.x1,e.y1,x2,e.y1+65);
+	rectangle(e.x1+10,e.y1+65,x2-10,e.y2);
+	circle(e.x1+5,e.y2-9,5);
+	circle(e.x2-5,e.y2-9,5);
+	if(*i+5>y)
+		*i=-1;
 }

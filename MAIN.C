@@ -11,6 +11,13 @@
 #include <time.h> 
 
 int x,y,setgraph=0,xline1,xline2,trackLength;
+struct enemycarPosition{
+	int x1,x2,y1,y2;
+} e;
+struct mycarPosition{
+	int x1,x2,y1,y2;
+} m;
+
 
 void setgraphics();
 void closegraphics();
@@ -18,6 +25,9 @@ void startgame();
 void loadingscreen();
 void mainmenu();
 void mycar(int);
+void enemycar(int *);
+
+
 
 
 int main(){
@@ -104,6 +114,7 @@ void mainmenu(){
 
 void startgame(){
 	int i,accident=0,mycarLocation=1;
+	int *enemycarPos;
 	char msg[100];
 	cleardevice();
 
@@ -113,15 +124,16 @@ void startgame(){
 		outtextxy(x/2-50,100,msg);
 		delay(1000);
 	}
-	i=0;
 	xline1=(x-300)/2;
 	xline2=300+xline1;
 	trackLength=xline2-xline1;
+	*enemycarPos=0;
 
 	while(accident==0){
 		cleardevice();
 		line(xline1,0,xline1,y);
 		line(xline2,0,xline2,y);
+		enemycar(enemycarPos);
 		mycar(mycarLocation);
 
 
@@ -147,18 +159,37 @@ void startgame(){
 
 			}
 		}
+		*enemycarPos=*enemycarPos+1;
+		delay(5);
 
 	}
 	getch();
 }
 
 void mycar(int carLocation){
-	int x1,x2;
-	x1=xline1+(trackLength/3*carLocation)+5;
-	x2=xline1+(trackLength/3*(carLocation+1))-5;
-	rectangle(x1,y-75,x2,y-5);
-	rectangle(x1+20,y-75,x2-20,y-5);
-	rectangle(x1+10,y-100,x2-10,y-75);
-	circle(x1+5,y-86,5);
-	circle(x2-5,y-86,5);
+	m.x1=xline1+(trackLength/3*carLocation)+5;
+	m.x2=xline1+(trackLength/3*(carLocation+1))-5;
+	rectangle(m.x1,y-75,m.x2,y-5);
+	rectangle(m.x1+20,y-75,m.x2-20,y-5);
+	rectangle(m.x1+10,y-100,m.x2-10,y-75);
+	circle(m.x1+5,y-86,5);
+	circle(m.x2-5,y-86,5);
+}
+
+void enemycar(int *i){
+	static int enemycarLoc;
+	if (*i==0){
+		srand(time(0));
+		enemycarLoc=rand()%3;
+		e.x1=xline1+5+(trackLength/3)*enemycarLoc;
+		e.x2=xline1+(trackLength/3*(enemycarLoc+1))-5;
+	}
+	e.y1=*i+5;
+	e.y2=*i+95;
+	rectangle(e.x1,e.y1,e.x2,e.y1+65);
+	rectangle(e.x1+10,e.y1+65,e.x2-10,e.y2);
+	circle(e.x1+5,e.y2-9,5);
+	circle(e.x2-5,e.y2-9,5);
+	if(*i+5>y)
+		*i=-1;
 }
