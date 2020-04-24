@@ -39,6 +39,9 @@ struct enemycarPosition{
 struct mycarPosition{
 	int x1,x2,y1,y2;
 } m;
+struct enemycarPosition1{
+	int x1,x2,y1,y2;
+} e1;
 
 //user-defined functions
 void setgraphics();
@@ -48,12 +51,18 @@ void mainmenu();
 void mycar(int);
 void enemycar(int *);
 int collisionDetection(struct mycarPosition mc,struct enemycarPosition ec);
+int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec1);
 void draw(long int,int);
 int scoreincrease(long int,int);
 void pause();
 void gameover(long int);
 void defaultColor();
 void colorSelect(int,int);
+void enemycar1(int *);
+void displayControls();
+//void showHighscores();
+void showCredits();
+//void customize();
 
 
 
@@ -111,28 +120,56 @@ void mainmenu(){
 
 	
 		outtextxy(x/2-100,100,"Play");
-		outtextxy(x/2-100,150,"Exit");
+		outtextxy(x/2-100,150,"Controls");
+		outtextxy(x/2-100,200,"HighScores");
+		outtextxy(x/2-100,250,"Customize");
+		outtextxy(x/2-100,300,"Credits");
+		outtextxy(x/2-100,350,"Exit");
 		circle(x/2-110,125,5);
 		circle(x/2-110,175,5);
+		circle(x/2-110,225,5);
+		circle(x/2-110,275,5);
+		circle(x/2-110,325,5);
+		circle(x/2-110,375,5);
+
 		setfillstyle(SOLID_FILL,BLUE);
 		floodfill(x/2-110,125+50*selection,BLUE);
 
 		switch(getch()){
 			case 'W': 
 			case 'w':
-				if (selection!=0)
+				if (selection==0)
+					selection=5;
+				else
 					selection--;
 				break;
 			case 's':
 			case 'S':
-				if (selection!=1)
+				if (selection==5)
+					selection=0;
+				else
 					selection++;
 				break;
 			case 13://enterkey - CR
-				if (selection==0)
+				if (selection==0){
 					startgame();
-				else
+				}
+				else if(selection==1){
+					displayControls();
+				}
+				else if(selection==2){
+					//showHighscores();
+				}
+				else if(selection==3){
+					//customize();
+				}
+				else if (selection==4){
+					showCredits();
+				}
+				else {
 					exit(0);
+				}
+
 				break;
 			default:
 				break;
@@ -143,8 +180,8 @@ void mainmenu(){
 
 
 void startgame(){
-	int i,mycarLocation=1,collision=0;
-	int *enemycarPos;
+	int i,mycarLocation=1,collision=0,activateEnemy1=0;
+	int *enemycarPos,*enemycarPos1;
 	cleardevice();
 	randomize();
 	setbkcolor(WHITE);
@@ -163,13 +200,19 @@ void startgame(){
 	xline2=x/2+75;
 	trackLength=xline2-xline1;
 	*enemycarPos=0;
+	*enemycarPos1=0;
 
 	while(1){
 		cleardevice();
 		draw(score,speed);
 		enemycar(enemycarPos);
+		if (activateEnemy1==1){
+			enemycar1(enemycarPos1);
+			*enemycarPos1=*enemycarPos1+speed;
+		}
 		mycar(mycarLocation);
-		collision=collisionDetection(m,e);
+
+		collision=collisionDetection(m,e)+collisionDetection1(m,e1);
 		if (collision==1){
 			gameover(score);
 		}
@@ -203,6 +246,8 @@ void startgame(){
 		}
 		*enemycarPos=*enemycarPos+speed;
 		score=score+speed*1;
+		if (*enemycarPos>y/2)
+			activateEnemy1=1;
 		speed=speedincrease(score,speed);
 		delay(10);
 
@@ -217,6 +262,7 @@ void mycar(int carLocation){
 	rectangle(m.x1,m.y1-35,m.x2,m.y1);//big block
 	rectangle(m.x1+10,m.y2+13,m.x2-10,m.y1);//middle block
 	rectangle(m.x1+5,m.y2,m.x2-5,m.y2+13);//front block
+	setcolor(WHITE);
 	bar(m.x1+3,m.y2+3,m.x1+5,m.y2+13);//left tyre
 	bar(m.x2-3,m.y2+3,m.x2-5,m.y2+13);//right tyre
 
@@ -234,13 +280,53 @@ void enemycar(int *i){
 	e.y2=*i+48;
 	rectangle(e.x1,e.y1,e.x2,e.y1+33);//big block
 	rectangle(e.x1+5,e.y1+33,e.x2-5,e.y2);//front block
+	setfillstyle(SOLID_FILL,WHITE);
 	bar(e.x1+3,e.y1+33,e.x1+5,e.y2-3);//left tyre
 	bar(e.x2-5,e.y1+33,e.x2-3,e.y2-3);//right tyre
 	if(e.y1>y)
 		*i=-speed;
 }
 
+void enemycar1(int *j){
+	static int enemycarLoc1;
+	if (*j==0){
+		enemycarLoc1=random(100)%3;
+		e1.x1=xline1+3+(trackLength/3)*enemycarLoc1;
+		e1.x2=xline1+(trackLength/3*(enemycarLoc1+1))-3;
+	}
+	e1.y1=*j+3;
+	e1.y2=*j+48;
+	rectangle(e1.x1,e1.y1,e1.x2,e1.y1+33);//big block
+	rectangle(e1.x1+5,e1.y1+33,e1.x2-5,e1.y2);//front block
+	setfillstyle(SOLID_FILL,WHITE);
+	bar(e1.x1+3,e1.y1+33,e1.x1+5,e1.y2-3);//left tyre
+	bar(e1.x2-5,e1.y1+33,e1.x2-3,e1.y2-3);//right tyre
+	if(e1.y1>y)
+		*j=-speed;
+}
+
 int collisionDetection(struct mycarPosition mc,struct enemycarPosition ec  ){
+	if (ec.x1>mc.x2){
+		return 0;
+	}
+	else{
+		if(ec.x2<mc.x1) {
+			return 0;
+		}else{
+			if(ec.y1>mc.y1){
+				return 0;
+			}else{
+				if(ec.y2<mc.y2){
+					return 0;
+				}else{
+					return 1;
+				}
+			}
+		}
+	}
+	
+}
+int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec ){
 	if (ec.x1>mc.x2){
 		return 0;
 	}
@@ -320,12 +406,25 @@ int speedincrease(long int sc ,int sp){
 }
 
 void pause(){
-	outtextxy(x/2-10,y/2,"Paused");
+	setfillstyle(SOLID_FILL,8);//darkgray
+
+	bar(xline1,y/2-210,xline2,y/2-180);
+
+	//pause symbol
+	line(xline1+50,y/2-200,xline1+50,y/2-190);//straight line
+	line(xline1+50,y/2-200,xline1+60,y/2-195);//back slash line
+	line(xline1+50,y/2-190,xline1+60,y/2-195);//front slash line
+
+	outtextxy(xline1+70,y/2-200,"Paused");
 	getch();
 }
 
 void gameover(long int sc){
-	outtextxy(x/2,y/2,"Game Over");
+	setfillstyle(SOLID_FILL,8);//darkgray
+
+	bar(xline1,y/2-210,xline2,y/2-180);
+
+	outtextxy(xline1+40,y/2-200,"Game Over");
 	delay(10);
 	getch();
 	cleardevice();
@@ -345,5 +444,49 @@ void defaultColor(){
 void colorSelect(int a,int b){
 	setbkcolor(a);
 	setcolor(b);
+}
+
+void displayControls(){
+	cleardevice();
+	settextstyle(3,0,4);
+	outtextxy(x/2-100,100,"CONTROLS");
+	settextstyle(3,0,2);
+	outtextxy(100,150,"Upward:");
+	outtextxy(275,150,"W");
+	outtextxy(100,175,"Downward:");
+	outtextxy(275,175,"S");
+	outtextxy(100,200,"Left");
+	outtextxy(275,200,"A");
+	outtextxy(100,225,"Right:");
+	outtextxy(275,225,"D");
+	outtextxy(100,250,"Pause/Resume:");
+	outtextxy(275,250,"P");
+	outtextxy(100,275,"Direct Exit:");
+	outtextxy(275,275,"X");
+
+	outtextxy(100,350,"Press any key to return to mainmenu.");
+
+	getch();
+	mainmenu();
+
+}
+
+void showCredits(){
+	cleardevice();
+	settextstyle(3,0,4);
+	outtextxy(x/2-100,100,"CREDITS");
+	settextstyle(3,0,2);
+	outtextxy(100,150,"This game is developed by:");
+	outtextxy(125,175,"-Rohan Dhimal");
+	outtextxy(125,200,"-Prahlad Neupane");
+	outtextxy(125,225,"-Puskar Humagain");
+	outtextxy(125,250,"-Bibek Dhital");
+	outtextxy(100,275,"Special thanks to: Kamal Rana Sir");
+
+	outtextxy(100,350,"Press any key to return to mainmenu.");
+
+	getch();
+	mainmenu();
+
 }
 
