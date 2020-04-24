@@ -8,15 +8,16 @@
 #include <graphics.h>
 #include <conio.h>
 #include <dos.h>
-#include <time.h>
+#include <time.h> 
 
-int maxx,maxy,setgraph=0;
+int maxx,maxy,setgraph=0,xline1,xline2,trackLength;
 
 void setgraphics();
 void closegraphics();
 void startgame();
 void loadingscreen();
 void mainmenu();
+void mycar(int);
 
 
 int main(){
@@ -59,37 +60,76 @@ void loadingscreen(){
 }
 
 void mainmenu(){
-	char enteredChar;
-	menu:
-	cleardevice();
-	outtextxy(maxx/2-100,100,"A Car Racing Game");
-	outtextxy(maxx/2-100,125,"A: Play");
-	outtextxy(maxx/2-100,150,"B: Exit");
-	outtextxy(maxx/2-100,175,"Choose A or B.");
-	enteredChar1:
-	enteredChar=getch();
-	if (enteredChar=='a'||enteredChar=='A')
-		startgame();
-	else if(enteredChar=='b'||enteredChar=='B'){
-		setcolor(BLUE);
-		bar(maxx/2-200,maxy-200,maxx/2+200,maxy-175);
-		setcolor(WHITE);
-		outtextxy(maxx/2-225,maxy-186,"Are u sure u want to exit: (Y/N) ?");
-		enteredChar2:
-		enteredChar=getch();
-		if (enteredChar=='y' || enteredChar=='Y')
-			exit(0);
-		else if(enteredChar=='n' || enteredChar=='N')
-			goto menu;
-		else
-			goto enteredChar2;
+	int selection=1;
 
-	}else
-		goto enteredChar1;
+	cleardevice();
+
+	
+	while(1){
+		cleardevice();
+
+		outtextxy(maxx/2-100,100,"A Car Racing Game");
+	
+		outtextxy(maxx/2-100,125,"Play");
+		outtextxy(maxx/2-100,150,"Exit");
+		circle(maxx/2-110,125,5);
+		circle(maxx/2-110,150,5);
+		setfillstyle(SOLID_FILL,BLUE);
+		floodfill(maxx/2-110,100+25*selection,BLUE);
+
+		switch(getch()){
+			case 'W': 
+			case 'w':
+				if (selection!=1)
+					selection--;
+				break;
+			case 's':
+			case 'S':
+				if (selection!=2)
+					selection++;
+				break;
+			case 13://enterkey - CR
+				if (selection==1)
+					startgame();
+				else
+					exit(0);
+				break;
+			default:
+				break;
+		}
+
+	}
 }
 
+
 void startgame(){
+	int i,,accident=0,mycarLocation=1;
+	char msg[100];
 	cleardevice();
-	outtextxy(100,100,"Starting Game:");
+
+	for(i=3;i!=0;i--){
+		cleardevice();
+		sprintf(msg,"Starting in %d...",i);
+		outtextxy(maxx/2-50,100,msg);
+		delay(1000);
+	}
+	xline1=(maxx-300)/2;
+	xline2=300+xline1;
+	trackLength=xline2-xline1;
+
+	while(accident==0){
+		cleardevice();
+		line(xline1,0,xline1,maxy);
+		line(xline2,0,xline2,maxy);
+		mycar(mycarLocation);
+
+		getch();
+		exit(0);
+	}
+
 	getch();
+}
+
+void mycarLocation(int carLocation){
+	rectangle(xline1+(trackLength/3*mycarLocation)+5,maxxy-75,xline1+(trackLength/3*(mycarLocation+1))-5,maxxy-5);
 }

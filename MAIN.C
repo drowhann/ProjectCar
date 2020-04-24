@@ -8,23 +8,24 @@
 #include <graphics.h>
 #include <conio.h>
 #include <dos.h>
-#include <time.h>
+#include <time.h> 
 
-int maxx,maxy,setgraph=0;
+int x,y,setgraph=0,xline1,xline2,trackLength;
 
 void setgraphics();
 void closegraphics();
 void startgame();
 void loadingscreen();
 void mainmenu();
+void mycar(int);
 
 
 int main(){
 
 	if (setgraph==0)
 	 setgraphics();
-	maxx=getmaxx();
-	maxy=getmaxy();
+	x=getmaxx();
+	y=getmaxy();
 	setbkcolor(WHITE);
 	setcolor(BLUE);
 	loadingscreen();
@@ -49,47 +50,115 @@ void loadingscreen(){
 	int i=0;
 	cleardevice();
 	while (i!=200){
-		rectangle(maxx/2-100,maxy-100,maxx/2-100+i,maxy-75);
-		rectangle(maxx/2-100,maxy-100,maxx/2+100,maxy-75);
+		rectangle(x/2-100,y-100,x/2-100+i,y-75);
+		rectangle(x/2-100,y-100,x/2+100,y-75);
 		i++;
 		delay(10);
 	}
-	outtextxy(maxx/2-100,100,"Press any key to continue:");
+	outtextxy(x/2-100,100,"Press any key to continue:");
 	getch();
 }
 
 void mainmenu(){
-	char enteredChar;
-	menu:
-	cleardevice();
-	outtextxy(maxx/2-100,100,"A Car Racing Game");
-	outtextxy(maxx/2-100,125,"A: Play");
-	outtextxy(maxx/2-100,150,"B: Exit");
-	outtextxy(maxx/2-100,175,"Choose A or B.");
-	enteredChar1:
-	enteredChar=getch();
-	if (enteredChar=='a'||enteredChar=='A')
-		startgame();
-	else if(enteredChar=='b'||enteredChar=='B'){
-		rectangle(maxx/2-200,maxy-200,maxx/2+200,maxy-175);
-		outtextxy(maxx/2-175,maxy-186,"Are u sure u want to exit: (Y/N) ?");
-		enteredChar2:
-		enteredChar=getch();
-		if (enteredChar=='y' || enteredChar=='Y')
-			exit(0);
-		else if(enteredChar=='n' || enteredChar=='N')
-			goto menu;
-		else
-			goto enteredChar2;
+	int selection=1;
 
-	}else
-		goto enteredChar1;
+	cleardevice();
+
+	
+	while(1){
+		cleardevice();
+
+		outtextxy(x/2-100,100,"A Car Racing Game");
+	
+		outtextxy(x/2-100,125,"Play");
+		outtextxy(x/2-100,150,"Exit");
+		circle(x/2-110,125,5);
+		circle(x/2-110,150,5);
+		setfillstyle(SOLID_FILL,BLUE);
+		floodfill(x/2-110,100+25*selection,BLUE);
+
+		switch(getch()){
+			case 'W': 
+			case 'w':
+				if (selection!=1)
+					selection--;
+				break;
+			case 's':
+			case 'S':
+				if (selection!=2)
+					selection++;
+				break;
+			case 13://enterkey - CR
+				if (selection==1)
+					startgame();
+				else
+					exit(0);
+				break;
+			default:
+				break;
+		}
+
+	}
 }
 
+
 void startgame(){
+	int i,accident=0,mycarLocation=1;
+	char msg[100];
 	cleardevice();
-	outtextxy(maxx/2-50,100,"Levels:");
-	outtextxy(maxx/2-50,125,"Level 1");
-	outtextxy(maxx/2-50,150,"Level 2");
+
+	for(i=3;i!=0;i--){
+		cleardevice();
+		sprintf(msg,"Starting in %d...",i);
+		outtextxy(x/2-50,100,msg);
+		delay(1000);
+	}
+	i=0;
+	xline1=(x-300)/2;
+	xline2=300+xline1;
+	trackLength=xline2-xline1;
+
+	while(accident==0){
+		cleardevice();
+		line(xline1,0,xline1,y);
+		line(xline2,0,xline2,y);
+		mycar(mycarLocation);
+
+
+		if(kbhit()){
+			switch(getch()){
+				case 'A':
+				case 'a':
+					if(mycarLocation!=0)
+						mycarLocation--;
+					break;
+				case 'd':
+				case 'D':
+					if(mycarLocation!=2)
+						mycarLocation++;
+					break;
+				case 'X':
+				case 'x':
+					exit(0);
+					break;
+				default:
+					break;
+
+
+			}
+		}
+
+	}
 	getch();
+}
+
+void mycar(int carLocation){
+	int x1,x2;
+	x1=xline1+(trackLength/3*carLocation)+5;
+	x2=xline1+(trackLength/3*(carLocation+1))-5;
+	rectangle(x1,y-75,x2,y-5);
+	rectangle(x1+20,y-75,x2-20,y-5);
+	rectangle(x1+10,y-100,x2-10,y-75);
+	circle(x1+5,y-86,5);
+	circle(x2-5,y-86,5);
 }
