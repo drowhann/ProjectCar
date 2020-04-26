@@ -218,7 +218,7 @@ void startgame(){
 		enemycar(enemycarPos);
 		if (activateEnemy1==1){
 			enemycar1(enemycarPos1);
-			*enemycarPos1=*enemycarPos1+speed;
+			*enemycarPos1=*enemycarPos1+speed+1;
 		}
 		mycar(mycarLocation);
 
@@ -254,7 +254,7 @@ void startgame(){
 
 			}
 		}
-		*enemycarPos=*enemycarPos+speed;
+		*enemycarPos=*enemycarPos+speed+1;
 		score=score+speed*1;
 		if (*enemycarPos>y/2)
 			activateEnemy1=1;
@@ -294,7 +294,7 @@ void enemycar(int *i){
 	bar(e.x1+3,e.y1+33,e.x1+5,e.y2-3);//left tyre
 	bar(e.x2-5,e.y1+33,e.x2-3,e.y2-3);//right tyre
 	if(e.y1>y)
-		*i=-speed;
+		*i=-speed-1;
 }
 
 void enemycar1(int *j){
@@ -312,7 +312,7 @@ void enemycar1(int *j){
 	bar(e1.x1+3,e1.y1+33,e1.x1+5,e1.y2-3);//left tyre
 	bar(e1.x2-5,e1.y1+33,e1.x2-3,e1.y2-3);//right tyre
 	if(e1.y1>y)
-		*j=-speed;
+		*j=-speed-1;
 }
 
 int collisionDetection(struct mycarPosition mc,struct enemycarPosition ec  ){
@@ -416,6 +416,8 @@ int speedincrease(long int sc ,int sp){
 }
 
 void pause(){
+	int the_end=0;
+
 	setfillstyle(SOLID_FILL,8);//darkgray
 
 	bar(xline1,y/2-210,xline2,y/2-180);
@@ -426,7 +428,24 @@ void pause(){
 	line(xline1+50,y/2-190,xline1+60,y/2-195);//front slash line
 
 	outtextxy(xline1+70,y/2-200,"Paused");
-	getch();
+	while(!the_end){
+		switch(getch()){
+			case 'p':
+			case 'P':
+				the_end=1;
+				break;
+			case 'm':
+			case 'M':
+				mainmenu();
+				break;
+			case 'x':
+			case 'X':
+				exit(0);
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 void gameover(long int sc){
@@ -469,20 +488,21 @@ void displayControls(){
 	settextstyle(3,0,4);
 	outtextxy(x/2-100,100,"CONTROLS");
 	settextstyle(3,0,2);
-	outtextxy(100,150,"Upward:");
-	outtextxy(275,150,"W");
-	outtextxy(100,175,"Downward:");
-	outtextxy(275,175,"S");
+	outtextxy(100,150,"Upward");
+	outtextxy(400,150,"W");
+	outtextxy(100,175,"Downward");
+	outtextxy(400,175,"S");
 	outtextxy(100,200,"Left");
-	outtextxy(275,200,"A");
-	outtextxy(100,225,"Right:");
-	outtextxy(275,225,"D");
-	outtextxy(100,250,"Pause/Resume:");
-	outtextxy(275,250,"P");
-	outtextxy(100,275,"Direct Exit:");
-	outtextxy(275,275,"X");
-
-	outtextxy(100,350,"Press any key to return to mainmenu.");
+	outtextxy(400,200,"A");
+	outtextxy(100,225,"Right");
+	outtextxy(400,225,"D");
+	outtextxy(100,250,"Pause/Resume");
+	outtextxy(400,250,"P");
+	outtextxy(100,275,"Direct Exit (while playing)");
+	outtextxy(400,275,"X");
+	outtextxy(100,300,"Mainmenu (when paused)")  ;
+	outtextxy(400,300,"M");
+	outtextxy(100,400,"Press any key to return to mainmenu.");
 
 	getch();
 	mainmenu();
@@ -509,6 +529,7 @@ void showCredits(){
 }
 
 void showHighscores(){
+	int i;
 	cleardevice();
 
 	if (readhighscore==0)
@@ -519,22 +540,14 @@ void showHighscores(){
 
 	settextstyle(3,0,3);
 
-	sprintf(msg,"%s : %ld",h[0].name,h[0].hscore);
-	outtextxy(100,150,msg);
+	for (i=0;i<5;i++){
+		sprintf(msg,"%d. %s",i+1,h[i].name);
+		outtextxy(100,150+i*25,msg);
+		sprintf(msg,"%ld",h[i].hscore);
+		outtextxy(400,150+i*25,msg);
+	}
 
-	sprintf(msg,"%s : %ld",h[1].name,h[1].hscore);
-	outtextxy(100,175,msg);
-
-	sprintf(msg,"%s : %ld",h[2].name,h[2].hscore);
-	outtextxy(100,200,msg);
-
-	sprintf(msg,"%s : %ld",h[3].name,h[3].hscore);
-	outtextxy(100,225,msg);
-
-	sprintf(msg,"%s : %ld",h[4].name,h[4].hscore);
-	outtextxy(100,250,msg);
-
-	outtextxy(100,350,"Press any key to return to mainmenu.");
+	outtextxy(100,150+i*25+100,"Press any key to return to mainmenu.");
 	getch();
 }
 
