@@ -29,8 +29,10 @@ Special Thanks to
 #include <dos.h>
 #include <time.h> 
 
+
+
 //global variables
-int x,y,xline1,xline2,trackLength,speed;
+int x,y,xline1,xline2,trackLength,speed,readhighscore=0;
 long int score;
 char msg[100];
 struct enemycarPosition{
@@ -42,6 +44,11 @@ struct mycarPosition{
 struct enemycarPosition1{
 	int x1,x2,y1,y2;
 } e1;
+
+struct highsc{
+	char name[20];
+	long int hscore;
+}h[5];
 
 //user-defined functions
 void setgraphics();
@@ -55,10 +62,16 @@ int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec1);
 void draw(long int,int);
 int scoreincrease(long int,int);
 void pause();
-void gameover(long int);
+void gameover();
 void defaultColor();
 void colorSelect(int,int);
 void enemycar1(int *);
+void displayControls();
+void showHighscores();
+void readHighscore();
+void showCredits();
+void takeuserdetails(long int);
+int updateHighscore();
 
 
 
@@ -116,28 +129,56 @@ void mainmenu(){
 
 	
 		outtextxy(x/2-100,100,"Play");
-		outtextxy(x/2-100,150,"Exit");
+		outtextxy(x/2-100,150,"Controls");
+		outtextxy(x/2-100,200,"HighScores");
+		outtextxy(x/2-100,250,"Customize");
+		outtextxy(x/2-100,300,"Credits");
+		outtextxy(x/2-100,350,"Exit");
 		circle(x/2-110,125,5);
 		circle(x/2-110,175,5);
+		circle(x/2-110,225,5);
+		circle(x/2-110,275,5);
+		circle(x/2-110,325,5);
+		circle(x/2-110,375,5);
+
 		setfillstyle(SOLID_FILL,BLUE);
 		floodfill(x/2-110,125+50*selection,BLUE);
 
 		switch(getch()){
 			case 'W': 
 			case 'w':
-				if (selection!=0)
+				if (selection==0)
+					selection=5;
+				else
 					selection--;
 				break;
 			case 's':
 			case 'S':
-				if (selection!=1)
+				if (selection==5)
+					selection=0;
+				else
 					selection++;
 				break;
 			case 13://enterkey - CR
-				if (selection==0)
+				if (selection==0){
 					startgame();
-				else
+				}
+				else if(selection==1){
+					displayControls();
+				}
+				else if(selection==2){
+					showHighscores();
+				}
+				else if(selection==3){
+					//customize();
+				}
+				else if (selection==4){
+					showCredits();
+				}
+				else {
 					exit(0);
+				}
+
 				break;
 			default:
 				break;
@@ -176,12 +217,14 @@ void startgame(){
 		enemycar(enemycarPos);
 		if (activateEnemy1==1){
 			enemycar1(enemycarPos1);
-			*enemycarPosition1=*enemycarPosition1+speed;
+			*enemycarPos1=*enemycarPos1+speed;
 		}
 		mycar(mycarLocation);
+
 		collision=collisionDetection(m,e)+collisionDetection1(m,e1);
 		if (collision==1){
-			gameover(score);
+			gameover();
+			takeuserdetails(score);
 		}
 
 
@@ -229,6 +272,7 @@ void mycar(int carLocation){
 	rectangle(m.x1,m.y1-35,m.x2,m.y1);//big block
 	rectangle(m.x1+10,m.y2+13,m.x2-10,m.y1);//middle block
 	rectangle(m.x1+5,m.y2,m.x2-5,m.y2+13);//front block
+	setcolor(WHITE);
 	bar(m.x1+3,m.y2+3,m.x1+5,m.y2+13);//left tyre
 	bar(m.x2-3,m.y2+3,m.x2-5,m.y2+13);//right tyre
 
@@ -246,6 +290,7 @@ void enemycar(int *i){
 	e.y2=*i+48;
 	rectangle(e.x1,e.y1,e.x2,e.y1+33);//big block
 	rectangle(e.x1+5,e.y1+33,e.x2-5,e.y2);//front block
+	setfillstyle(SOLID_FILL,WHITE);
 	bar(e.x1+3,e.y1+33,e.x1+5,e.y2-3);//left tyre
 	bar(e.x2-5,e.y1+33,e.x2-3,e.y2-3);//right tyre
 	if(e.y1>y)
@@ -263,6 +308,7 @@ void enemycar1(int *j){
 	e1.y2=*j+48;
 	rectangle(e1.x1,e1.y1,e1.x2,e1.y1+33);//big block
 	rectangle(e1.x1+5,e1.y1+33,e1.x2-5,e1.y2);//front block
+	setfillstyle(SOLID_FILL,WHITE);
 	bar(e1.x1+3,e1.y1+33,e1.x1+5,e1.y2-3);//left tyre
 	bar(e1.x2-5,e1.y1+33,e1.x2-3,e1.y2-3);//right tyre
 	if(e1.y1>y)
@@ -370,21 +416,27 @@ int speedincrease(long int sc ,int sp){
 }
 
 void pause(){
-	outtextxy(x/2-10,y/2,"Paused");
+	setfillstyle(SOLID_FILL,8);//darkgray
+
+	bar(xline1,y/2-210,xline2,y/2-180);
+
+	//pause symbol
+	line(xline1+50,y/2-200,xline1+50,y/2-190);//straight line
+	line(xline1+50,y/2-200,xline1+60,y/2-195);//back slash line
+	line(xline1+50,y/2-190,xline1+60,y/2-195);//front slash line
+
+	outtextxy(xline1+70,y/2-200,"Paused");
 	getch();
 }
 
-void gameover(long int sc){
-	outtextxy(x/2,y/2,"Game Over");
+void gameover(){
+	setfillstyle(SOLID_FILL,8);//darkgray
+
+	bar(xline1,y/2-210,xline2,y/2-180);
+
+	outtextxy(xline1+40,y/2-200,"Game Over");
 	delay(10);
 	getch();
-	cleardevice();
-	defaultColor();
-	sprintf(msg,"Your final score is %ld .",sc);
-	outtextxy(x/2-100,y/2,msg);
-	getch();
-	mainmenu();
-
 }
 
 void defaultColor(){
@@ -397,3 +449,211 @@ void colorSelect(int a,int b){
 	setcolor(b);
 }
 
+void displayControls(){
+	cleardevice();
+	settextstyle(3,0,4);
+	outtextxy(x/2-100,100,"CONTROLS");
+	settextstyle(3,0,2);
+	outtextxy(100,150,"Upward:");
+	outtextxy(275,150,"W");
+	outtextxy(100,175,"Downward:");
+	outtextxy(275,175,"S");
+	outtextxy(100,200,"Left");
+	outtextxy(275,200,"A");
+	outtextxy(100,225,"Right:");
+	outtextxy(275,225,"D");
+	outtextxy(100,250,"Pause/Resume:");
+	outtextxy(275,250,"P");
+	outtextxy(100,275,"Direct Exit:");
+	outtextxy(275,275,"X");
+
+	outtextxy(100,350,"Press any key to return to mainmenu.");
+
+	getch();
+	mainmenu();
+
+}
+
+void showCredits(){
+	cleardevice();
+	settextstyle(3,0,4);
+	outtextxy(x/2-100,100,"CREDITS");
+	settextstyle(3,0,2);
+	outtextxy(100,150,"This game is developed by:");
+	outtextxy(125,175,"-Rohan Dhimal");
+	outtextxy(125,200,"-Prahlad Neupane");
+	outtextxy(125,225,"-Puskar Humagain");
+	outtextxy(125,250,"-Bibek Dhital");
+	outtextxy(100,275,"Special thanks to: Kamal Rana Sir");
+
+	outtextxy(100,350,"Press any key to return to mainmenu.");
+
+	getch();
+	mainmenu();
+
+}
+
+void showHighscores(){
+	cleardevice();
+
+	if (readhighscore==0)
+		readHighscore();
+
+	settextstyle(3,0,4);
+	outtextxy(x/2-100,100,"HighScore");
+
+	settextstyle(3,0,3);
+
+	sprintf(msg,"%s : %ld",h[0].name,h[0].hscore);
+	outtextxy(100,150,msg);
+
+	sprintf(msg,"%s : %ld",h[1].name,h[1].hscore);
+	outtextxy(100,175,msg);
+
+	sprintf(msg,"%s : %ld",h[2].name,h[2].hscore);
+	outtextxy(100,200,msg);
+
+	sprintf(msg,"%s : %ld",h[3].name,h[3].hscore);
+	outtextxy(100,225,msg);
+
+	sprintf(msg,"%s : %ld",h[4].name,h[4].hscore);
+	outtextxy(100,250,msg);
+
+	outtextxy(100,350,"Press any key to return to mainmenu.");
+	getch();
+}
+
+void readHighscore(){
+
+	size_t elements_read;
+	FILE *fp;
+	fp=fopen("highscore.bin","rb");
+	if (fp==NULL){
+		outtextxy(x/2-50,y/2,"Error");
+		getch();
+		mainmenu();
+	}else{
+
+		elements_read=fread(&h,sizeof(struct highsc),5,fp);
+		fclose(fp);
+		if (elements_read==0){
+			outtextxy(x/2-50,y/2,"Error");
+			getch();
+			mainmenu();
+		}else{
+			readhighscore=1;
+		}
+
+	}
+
+}
+
+void takeuserdetails(long int sc){
+
+	char inputbuf[20];
+	int input_pos = 0;
+	char c;
+  	int the_end = 0;
+
+  	strcpy(inputbuf,"\0");
+
+  	 do { 
+		cleardevice();
+		sprintf(msg,"Score: %ld",sc);
+		outtextxy(10,100,msg);
+		outtextxy(10,125,"Enter your name:");
+		setfillstyle(SOLID_FILL,8);
+		bar(10,140,300,165);
+
+		outtextxy (15,150, inputbuf);
+		c = getch();
+		switch (c)
+		{
+			case 8: /* backspace */
+			if (input_pos)
+			{
+				input_pos--;
+				inputbuf[input_pos] = 0;
+			}
+			break;
+			case 13: /* return */
+			the_end = 1;
+			break;
+			case 27: /* Escape = Abort */
+			inputbuf[0] = 0;
+			the_end = 1;
+			break;
+			default:
+			if (input_pos < 20-1 && c >= ' ' && c <= '~')
+			{
+				inputbuf[input_pos] = c;
+				input_pos++;
+				inputbuf[input_pos] = 0;
+			}
+ 		}
+	} while (!the_end);
+
+	if (readhighscore==0)
+		readHighscore();
+	if (sc>h[4].hscore){
+		h[4].hscore=sc;
+		strcpy(h[4].name,inputbuf);
+		if (updateHighscore()==0){
+			outtextxy(10,180,"Unable to updte Highscore.");
+			outtextxy(10,210,"Press any key to return to mainmenu.");
+		}else{
+			outtextxy(10,180,"Congrats! You made your way to the Highscore Table.");
+			outtextxy(10,210,"Press any key to return to mainmenu.");
+		}
+		getch();
+
+	}else{
+		outtextxy(10,180,"Sorry! You couldn't made your way to the Highscore Table.");
+		outtextxy(10,210,"Press any key to return to mainmenu.");
+	}
+	mainmenu();
+
+}
+
+int updateHighscore(){
+	char ch[20];
+	int i,j=4;
+	long int k;
+	size_t elements_written;
+	FILE *fp;
+
+	for(i=3;i>0,j>0;i--){
+		if (h[j].hscore>h[i].hscore){
+
+			k=h[j].hsscore;
+			h[j].hscore=h[i].hscore;
+			h[i].hscore=k;
+
+			strcpy(ch,h[j].name);
+			strcpy(h[j].name,h[i].name);
+			strcpy(h[i].name,ch);
+
+			j=i;
+
+		}else{
+			break;
+		}
+	}
+
+	fp=fopen("highscore.bin","wb");
+	if (fp==NULL){
+		return 0;
+	}else{
+		elements_written=fwrite(&h,sizeof(struct highsc),5,fp);
+		fclose(fp);
+		if (elements_written==0){
+			return 0;
+		}else{
+			return 1;
+		}
+
+	}
+
+
+	
+}
