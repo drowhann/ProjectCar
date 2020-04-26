@@ -16,18 +16,18 @@ A project by:
 -Puskar Humagain
 -Bibek Dhital
 
-Special Thanks to 
+Special Thanks to
 
 
 */
 
-//libraries 
+//libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <graphics.h>
 #include <conio.h>
 #include <dos.h>
-#include <time.h> 
+#include <time.h>
 
 
 
@@ -62,7 +62,7 @@ int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec1);
 void draw(long int,int);
 int scoreincrease(long int,int);
 void pause();
-void gameover();
+void gameover(long int);
 void defaultColor();
 void colorSelect(int,int);
 void enemycar1(int *);
@@ -72,6 +72,7 @@ void readHighscore();
 void showCredits();
 void takeuserdetails(long int);
 int updateHighscore();
+int checkifscoredHigh(long int);
 
 
 
@@ -97,7 +98,7 @@ void setgraphics() {
 void loadingscreen(){
 	int i=0;
 	cleardevice();
-	settextstyle(4,0,5);//font direction size 
+	settextstyle(4,0,5);//font direction size
 	outtextxy(x/2-200,y/2,"A 2D Car Racing Game");
 	delay(1000);
 
@@ -120,14 +121,14 @@ void mainmenu(){
 	settextstyle(3,0,3);
 	defaultColor();
 
-	
+
 	while(1){
 		cleardevice();
 
 		score=0;
 		speed=1;
 
-	
+
 		outtextxy(x/2-100,100,"Play");
 		outtextxy(x/2-100,150,"Controls");
 		outtextxy(x/2-100,200,"HighScores");
@@ -145,7 +146,7 @@ void mainmenu(){
 		floodfill(x/2-110,125+50*selection,BLUE);
 
 		switch(getch()){
-			case 'W': 
+			case 'W':
 			case 'w':
 				if (selection==0)
 					selection=5;
@@ -223,8 +224,7 @@ void startgame(){
 
 		collision=collisionDetection(m,e)+collisionDetection1(m,e1);
 		if (collision==1){
-			gameover();
-			takeuserdetails(score);
+			gameover(score);
 		}
 
 
@@ -334,7 +334,7 @@ int collisionDetection(struct mycarPosition mc,struct enemycarPosition ec  ){
 			}
 		}
 	}
-	
+
 }
 int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec ){
 	if (ec.x1>mc.x2){
@@ -355,7 +355,7 @@ int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec ){
 			}
 		}
 	}
-	
+
 }
 
 void draw(long int sc,int sp){
@@ -371,44 +371,44 @@ void draw(long int sc,int sp){
 int speedincrease(long int sc ,int sp){
 
 	switch(sp){
-		case 1: 
+		case 1:
 			if (sc>1000)
 				sp++;
 			break;
-		case 2: 
+		case 2:
 			if (sc>2000)
 				sp++;
 			break;
-		case 3: 
+		case 3:
 			if (sc>4000)
 				sp++;
 			break;
-		case 4: 
+		case 4:
 			if (sc>8000)
 				sp++;
 			break;
-		case 5: 
+		case 5:
 			if (sc>16000)
 				sp++;
 			break;
-		case 6: 
+		case 6:
 			if (sc>32000)
 				sp++;
 			break;
-		case 7: 
+		case 7:
 			if (sc>64000)
 				sp++;
 			break;
-		case 8: 
+		case 8:
 			if (sc>120000)
 				sp++;
 			break;
-		case 9: 
+		case 9:
 			if (sc>240000)
 				sp++;
 			break;
 		default:
-			break;																	
+			break;
 	}
 	return sp;
 
@@ -429,7 +429,7 @@ void pause(){
 	getch();
 }
 
-void gameover(){
+void gameover(long int sc){
 	setfillstyle(SOLID_FILL,8);//darkgray
 
 	bar(xline1,y/2-210,xline2,y/2-180);
@@ -437,6 +437,21 @@ void gameover(){
 	outtextxy(xline1+40,y/2-200,"Game Over");
 	delay(10);
 	getch();
+	cleardevice();
+	sprintf(msg,"Score: %ld",score);
+	outtextxy(10,100,msg);
+	if (checkifscoredHigh(sc)==1)  {
+			outtextxy(10,130,"Congrats! You made your way to the Highscore Table.");
+			outtextxy(10,150,"Press any key to continue.");
+			getch();
+			takeuserdetails(score);
+	}
+	else{
+		outtextxy(10,130,"Sorry! You couldn't made your way to the Highscore Table.");
+		outtextxy(10,150,"Press any key to return to mainmenu.");
+		getch();
+	}
+	mainmenu();
 }
 
 void defaultColor(){
@@ -559,13 +574,11 @@ void takeuserdetails(long int sc){
 
   	 do { 
 		cleardevice();
-		sprintf(msg,"Score: %ld",sc);
-		outtextxy(10,100,msg);
-		outtextxy(10,125,"Enter your name:");
+		outtextxy(10,140,"Enter your name:");
 		setfillstyle(SOLID_FILL,8);
-		bar(10,140,300,165);
+		bar(10,160,300,200);
 
-		outtextxy (15,150, inputbuf);
+		outtextxy (15,175, inputbuf);
 		c = getch();
 		switch (c)
 		{
@@ -593,25 +606,22 @@ void takeuserdetails(long int sc){
  		}
 	} while (!the_end);
 
-	if (readhighscore==0)
-		readHighscore();
-	if (sc>h[4].hscore){
-		h[4].hscore=sc;
-		strcpy(h[4].name,inputbuf);
-		if (updateHighscore()==0){
-			outtextxy(10,180,"Unable to updte Highscore.");
-			outtextxy(10,210,"Press any key to return to mainmenu.");
-		}else{
-			outtextxy(10,180,"Congrats! You made your way to the Highscore Table.");
-			outtextxy(10,210,"Press any key to return to mainmenu.");
-		}
 
+	h[4].hscore=sc;
+	strcpy(h[4].name,inputbuf);
+	if (updateHighscore()==0){
+		outtextxy(10,220,"Unable to updte Highscore.");
+		outtextxy(10,240,"Press any key to return to mainmenu.");
 	}else{
-		outtextxy(10,180,"Sorry! You couldn't made your way to the Highscore Table.");
-		outtextxy(10,210,"Press any key to return to mainmenu.");
+		outtextxy(10,220,"Highscore successfully updated.");
+		outtextxy(10,240,"Press any key to return to mainmenu.");
+
 	}
+	
+
+
+	
 	getch();
-	mainmenu();
 
 }
 
@@ -657,3 +667,20 @@ int updateHighscore(){
 
 	
 }
+
+
+int checkifscoredHigh(long int sc){
+	if (readhighscore==0)
+		readHighscore();
+	if (sc>h[4].hscore)
+		return 1;
+	else
+		return 0;
+}
+
+
+
+
+
+
+
