@@ -4,19 +4,19 @@ Project of BIT first semester:
 ##^^A 2D car racing game^^##
 
 Description:
+This is a simple 2D car racing game designed by a group of BIT019 batch stucdent as a C project.
 
+Starting date: 20 April, 2020
 
-Starting date:20 April,2020
-
-Completion date:-----------
+Completion date: 3 May, 2020
 
 A project by:
--Rohan Dhimal
+-Rohan Dhimal ;)
 -Prahlad Neupane
 -Puskar Humagain
 -Bibek Dhital
 
-Special Thanks to
+Special Thanks to Kamal Rana Sir.
 
 
 */
@@ -26,8 +26,7 @@ Special Thanks to
 #include <stdlib.h>
 #include <graphics.h>
 #include <conio.h>
-#include <dos.h>
-#include <time.h>
+
 
 
 
@@ -72,8 +71,7 @@ void mainmenu();
 void mycar(int);
 void enemycar(int *);
 int collisionDetection(struct mycarPosition mc,struct enemycarPosition ec);
-int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec1);
-void draw(long int,int);
+int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec);
 int scoreincrease(long int,int);
 void pause();
 void gameover(long int);
@@ -101,12 +99,13 @@ int main(){
 	setgraphics();
 	x=getmaxx();
 	y=getmaxy();
-	if (readgamedata()==0){
-			c.bgcolor=15;//WHITE
-			c.textcolor=1;//BLUE
-			c.ingame_bgcolor1=7;//lightgray
-			c.ingame_bgcolor2=8;//darkgray
-			c.ingame_textcolor=15;//white
+	if (readgamedata()==0){//incase of any error :(
+				c.bgcolor=15;//WHITE
+				c.textcolor=1;//BLUE
+				c.ingame_bgcolor1=7;//lightgray
+				c.ingame_bgcolor2=8;//darkgray
+				c.ingame_textcolor=15;//white
+
 
 			carShape=0;//regular shape
 
@@ -138,7 +137,7 @@ void setgraphics() {
 void loadingscreen(){
 	int i=0;
 	cleardevice();
-	settextstyle(4,0,5);//font direction size
+	settextstyle(4,0,5);
 	outtextxy(x/2-200,y/2,"A 2D Car Racing Game");
 	delay(1000);
 
@@ -165,8 +164,8 @@ void mainmenu(){
 	while(1){
 		cleardevice();
 
-		score=0;
-		speed=1;
+		score=0;//initial score
+		speed=1;//initial speed
 
 
 		outtextxy(x/2-100,100,"Play");
@@ -302,7 +301,7 @@ void startgame(){
 		score=score+speed*1;
 		if (*enemycarPos>y/2)
 			activateEnemy1=1;
-		speed=speedincrease(score,speed);
+		speed=speedincrease(score,speed);//increase speed
 		delay(10);
 
 	}
@@ -456,7 +455,8 @@ int collisionDetection(struct mycarPosition mc,struct enemycarPosition ec  ){
 	}
 
 }
-int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec ){
+
+int collisionDetection1(struct mycarPosition mc,struct enemycarPosition1 ec  ){
 	if (ec.x1>mc.x2){
 		return 0;
 	}
@@ -536,7 +536,6 @@ int speedincrease(long int sc ,int sp){
 }
 
 void pause(){
-	int the_end=0;
 
 	setfillstyle(SOLID_FILL,c.ingame_bgcolor2);//darkgray
 
@@ -971,11 +970,11 @@ void customizeTheme(){
 					if (i==0){
 						
 
-						c.bgcolor=1;
-						c.textcolor=15;
-						c.ingame_bgcolor1=0;
-						c.ingame_bgcolor2=8;
-						c.ingame_textcolor=15;
+						c.bgcolor=1;//blue
+						c.textcolor=15;//white
+						c.ingame_bgcolor1=0;//black
+						c.ingame_bgcolor2=8;//darkgray
+						c.ingame_textcolor=15;//white
 
 					}else if (i==1){
 	
@@ -1092,7 +1091,7 @@ void resetsettings(){
 	defaultColor();
 	outtextxy(100,100,"Resetting all settings.");
 	for (i=0;i<5;i++){
-		outtextxy(300,100,".");
+		outtextxy(400,100,".");
 		delay(1000);
 	}
 	c.bgcolor=1;//BLUE
