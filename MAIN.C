@@ -50,6 +50,20 @@ struct highsc{
 	long int hscore;
 }h[5];
 
+struct colors{
+	int bgcolor;
+	int textcolor;
+	int ingame_bgcolor1;
+	int ingame_bgcolor2;
+	int ingame_textcolor;
+
+}c;
+int carShape;
+struct previous_player{
+    char name[20];
+    int len;
+}pp;
+
 //user-defined functions
 void setgraphics();
 void startgame();
@@ -63,8 +77,6 @@ void draw(long int,int);
 int scoreincrease(long int,int);
 void pause();
 void gameover(long int);
-void defaultColor();
-void colorSelect(int,int);
 void enemycar1(int *);
 void displayControls();
 void showHighscores();
@@ -73,7 +85,14 @@ void showCredits();
 void takeuserdetails(long int);
 int updateHighscore();
 int checkifscoredHigh(long int);
-
+int readgamedata();
+void defaultColor();
+void colorSelect(int ,int);
+int updategamedata();
+void customize();
+void customizeCar();
+void customizeTheme();
+void resetsettings();
 
 
 
@@ -82,6 +101,19 @@ int main(){
 	setgraphics();
 	x=getmaxx();
 	y=getmaxy();
+	if (readgamedata()==0){
+			c.bgcolor=15;//WHITE
+			c.textcolor=1;//BLUE
+			c.ingame_bgcolor1=7;//lightgray
+			c.ingame_bgcolor2=8;//darkgray
+			c.ingame_textcolor=15;//white
+
+			carShape=0;//regular shape
+
+			strcpy(pp.name,"Player");
+			pp.len=6;
+
+	}else
 	defaultColor();
 	loadingscreen();
 	mainmenu();
@@ -90,6 +122,14 @@ int main(){
 
 }
 
+void defaultColor(){
+	setbkcolor(c.bgcolor);
+	setcolor(c.textcolor);
+}
+void colorSelect(int a,int b){
+	setbkcolor(a);
+	setcolor(b);
+}
 void setgraphics() {
 	int gd=DETECT,gm;
 	initgraph(&gd,&gm,"C://turboc3//bgi");
@@ -142,8 +182,8 @@ void mainmenu(){
 		circle(x/2-110,325,5);
 		circle(x/2-110,375,5);
 
-		setfillstyle(SOLID_FILL,BLUE);
-		floodfill(x/2-110,125+50*selection,BLUE);
+		setfillstyle(SOLID_FILL,c.textcolor);
+		floodfill(x/2-110,125+50*selection,c.textcolor);
 
 		switch(getch()){
 			case 'W':
@@ -171,7 +211,7 @@ void mainmenu(){
 					showHighscores();
 				}
 				else if(selection==3){
-					//customize();
+					customize();
 				}
 				else if (selection==4){
 					showCredits();
@@ -190,12 +230,12 @@ void mainmenu(){
 
 
 void startgame(){
-	int i,mycarLocation=1,collision=0,activateEnemy1=0;
+	int i,mycarLocation,collision=0,activateEnemy1=0;
 	int *enemycarPos,*enemycarPos1;
+
 	cleardevice();
 	randomize();
-	setbkcolor(WHITE);
-	setcolor(BLUE);
+	defaultColor();
 
 	for(i=3;i!=0;i--){
 		cleardevice();
@@ -204,11 +244,12 @@ void startgame(){
 		delay(500);
 	}
 
-	colorSelect(7,WHITE);//lightgray
+	colorSelect(c.ingame_bgcolor1,c.ingame_textcolor);
 	settextstyle(0,0,1);
 	xline1=x/2-75;
 	xline2=x/2+75;
 	trackLength=xline2-xline1;
+	mycarLocation=random(100)%3;
 	*enemycarPos=0;
 	*enemycarPos1=0;
 
@@ -219,10 +260,13 @@ void startgame(){
 		if (activateEnemy1==1){
 			enemycar1(enemycarPos1);
 			*enemycarPos1=*enemycarPos1+speed+1;
-		}
+			collision=collisionDetection(m,e)+collisionDetection1(m,e1);
+		}else
+			collision=collisionDetection(m,e);
+
 		mycar(mycarLocation);
 
-		collision=collisionDetection(m,e)+collisionDetection1(m,e1);
+		
 		if (collision==1){
 			gameover(score);
 		}
@@ -269,16 +313,40 @@ void mycar(int carLocation){
 	m.x2=xline1+(trackLength/3*(carLocation+1))-3;
 	m.y1=y-3;
 	m.y2=y-50;
-	rectangle(m.x1,m.y1-35,m.x2,m.y1);//big block
-	rectangle(m.x1+10,m.y2+13,m.x2-10,m.y1);//middle block
-	rectangle(m.x1+5,m.y2,m.x2-5,m.y2+13);//front block
-	setcolor(WHITE);
-	bar(m.x1+3,m.y2+3,m.x1+5,m.y2+13);//left tyre
-	bar(m.x2-3,m.y2+3,m.x2-5,m.y2+13);//right tyre
+	if (carShape==0){//default shape
 
+		rectangle(m.x1,m.y1-35,m.x2,m.y1);//big block
+		rectangle(m.x1+10,m.y2+13,m.x2-10,m.y1);//middle block
+		rectangle(m.x1+5,m.y2,m.x2-5,m.y2+13);//front block
+		setfillstyle(SOLID_FILL,c.ingame_textcolor);
+		bar(m.x1+3,m.y2+3,m.x1+5,m.y2+13);//left tyre
+		bar(m.x2-3,m.y2+3,m.x2-5,m.y2+13);//right tyre
 
+	}
+	else if (carShape==1){//rectangle shape
+
+		rectangle(m.x1,m.y1,m.x2,m.y2);
+
+	}else if(carShape==2){//bar
+
+		setfillstyle(SOLID_FILL,c.ingame_textcolor);
+		bar(m.x1,m.y1,m.x2,m.y2);
+
+	}else if (carShape==3){//ellipse
+
+		ellipse((m.x1+m.x2)/2,(m.y1+m.y2)/2,0,360,(m.x2-m.x1)/2,(m.y1-m.y2)/2);
+
+	}else{//defaultShape
+
+		rectangle(m.x1,m.y1-35,m.x2,m.y1);//big block
+		rectangle(m.x1+10,m.y2+13,m.x2-10,m.y1);//middle block
+		rectangle(m.x1+5,m.y2,m.x2-5,m.y2+13);//front block
+		setfillstyle(SOLID_FILL,c.ingame_textcolor);
+		bar(m.x1+3,m.y2+3,m.x1+5,m.y2+13);//left tyre
+		bar(m.x2-3,m.y2+3,m.x2-5,m.y2+13);//right tyre
+
+	}
 }
-
 void enemycar(int *i){
 	static int enemycarLoc;
 	if (*i==0){
@@ -288,11 +356,38 @@ void enemycar(int *i){
 	}
 	e.y1=*i+3;
 	e.y2=*i+48;
-	rectangle(e.x1,e.y1,e.x2,e.y1+33);//big block
-	rectangle(e.x1+5,e.y1+33,e.x2-5,e.y2);//front block
-	setfillstyle(SOLID_FILL,WHITE);
-	bar(e.x1+3,e.y1+33,e.x1+5,e.y2-3);//left tyre
-	bar(e.x2-5,e.y1+33,e.x2-3,e.y2-3);//right tyre
+	if (carShape==0){//default shape
+
+		rectangle(e.x1,e.y1,e.x2,e.y1+33);//big block
+		rectangle(e.x1+5,e.y1+33,e.x2-5,e.y2);//front block
+		setfillstyle(SOLID_FILL,c.ingame_textcolor);
+		bar(e.x1+3,e.y1+33,e.x1+5,e.y2-3);//left tyre
+		bar(e.x2-5,e.y1+33,e.x2-3,e.y2-3);//right tyre
+	}
+	else if (carShape==1){//rectangle shape
+
+		rectangle(e.x1,e.y1,e.x2,e.y2);
+
+	}else if(carShape==2){//bar
+
+		setfillstyle(SOLID_FILL,c.ingame_textcolor);
+		bar(e.x1,e.y1,e.x2,e.y2);
+
+	}else if (carShape==3){//ellipse
+
+		ellipse((e.x1+e.x2)/2,(e.y1+e.y2)/2,0,360,(e.x2-e.x1)/2,(e.y2-e.y1)/2);
+
+	}else{//defaultShape
+
+		rectangle(e.x1,e.y1,e.x2,e.y1+33);//big block
+		rectangle(e.x1+5,e.y1+33,e.x2-5,e.y2);//front block
+		setfillstyle(SOLID_FILL,c.ingame_textcolor);
+		bar(e.x1+3,e.y1+33,e.x1+5,e.y2-3);//left tyre
+		bar(e.x2-5,e.y1+33,e.x2-3,e.y2-3);//right tyre
+
+	}
+
+
 	if(e.y1>y)
 		*i=-speed-1;
 }
@@ -306,11 +401,36 @@ void enemycar1(int *j){
 	}
 	e1.y1=*j+3;
 	e1.y2=*j+48;
-	rectangle(e1.x1,e1.y1,e1.x2,e1.y1+33);//big block
-	rectangle(e1.x1+5,e1.y1+33,e1.x2-5,e1.y2);//front block
-	setfillstyle(SOLID_FILL,WHITE);
-	bar(e1.x1+3,e1.y1+33,e1.x1+5,e1.y2-3);//left tyre
-	bar(e1.x2-5,e1.y1+33,e1.x2-3,e1.y2-3);//right tyre
+	if (carShape==0){//default shape
+
+		rectangle(e1.x1,e1.y1,e1.x2,e1.y1+33);//big block
+		rectangle(e1.x1+5,e1.y1+33,e1.x2-5,e1.y2);//front block
+		setfillstyle(SOLID_FILL,c.ingame_textcolor);
+		bar(e1.x1+3,e1.y1+33,e1.x1+5,e1.y2-3);//left tyre
+		bar(e1.x2-5,e1.y1+33,e1.x2-3,e1.y2-3);//right tyre
+	}
+	else if (carShape==1){//rectangle shape
+
+		rectangle(e1.x1,e1.y1,e1.x2,e1.y2);
+
+	}else if(carShape==2){//bar
+
+		setfillstyle(SOLID_FILL,c.ingame_textcolor);
+		bar(e1.x1,e1.y1,e1.x2,e1.y2);
+
+	}else if (carShape==3){//ellipse
+
+		ellipse((e1.x1+e1.x2)/2,(e1.y1+e1.y2)/2,0,360,(e1.x2-e1.x1)/2,(e1.y2-e1.y1)/2);
+
+	}else{//defaultShape
+
+		rectangle(e1.x1,e1.y1,e1.x2,e1.y1+33);//big block
+		rectangle(e1.x1+5,e1.y1+33,e1.x2-5,e1.y2);//front block
+		setfillstyle(SOLID_FILL,c.ingame_textcolor);
+		bar(e1.x1+3,e1.y1+33,e1.x1+5,e1.y2-3);//left tyre
+		bar(e1.x2-5,e1.y1+33,e1.x2-3,e1.y2-3);//right tyre
+
+	}
 	if(e1.y1>y)
 		*j=-speed-1;
 }
@@ -418,7 +538,7 @@ int speedincrease(long int sc ,int sp){
 void pause(){
 	int the_end=0;
 
-	setfillstyle(SOLID_FILL,8);//darkgray
+	setfillstyle(SOLID_FILL,c.ingame_bgcolor2);//darkgray
 
 	bar(xline1,y/2-210,xline2,y/2-180);
 
@@ -449,7 +569,7 @@ void pause(){
 }
 
 void gameover(long int sc){
-	setfillstyle(SOLID_FILL,8);//darkgray
+	setfillstyle(SOLID_FILL,c.ingame_bgcolor2);
 
 	bar(xline1,y/2-210,xline2,y/2-180);
 
@@ -473,15 +593,6 @@ void gameover(long int sc){
 	mainmenu();
 }
 
-void defaultColor(){
-	setbkcolor(WHITE);
-	setcolor(BLUE);
-}
-
-void colorSelect(int a,int b){
-	setbkcolor(a);
-	setcolor(b);
-}
 
 void displayControls(){
 	cleardevice();
@@ -579,16 +690,15 @@ void readHighscore(){
 void takeuserdetails(long int sc){
 
 	char inputbuf[20];
-	int input_pos = 0;
+	int input_pos = pp.len;
 	char c;
-  	int the_end = 0;
+	int the_end = 0;
 
-  	strcpy(inputbuf,"\0");
+	strcpy(inputbuf,pp.name);
 
-  	 do { 
+	 do {
 		cleardevice();
 		outtextxy(10,140,"Enter your name:");
-		setfillstyle(SOLID_FILL,8);
 		bar(10,160,300,200);
 
 		outtextxy (15,175, inputbuf);
@@ -619,11 +729,14 @@ void takeuserdetails(long int sc){
  		}
 	} while (!the_end);
 
+	strcpy(pp.name,inputbuf);
+	updategamedata();
+
 
 	h[4].hscore=sc;
 	strcpy(h[4].name,inputbuf);
 	if (updateHighscore()==0){
-		outtextxy(10,220,"Unable to updte Highscore.");
+		outtextxy(10,220,"Unable to update Highscore.");
 		outtextxy(10,240,"Press any key to return to mainmenu.");
 	}else{
 		outtextxy(10,220,"Highscore successfully updated.");
@@ -691,7 +804,320 @@ int checkifscoredHigh(long int sc){
 		return 0;
 }
 
+int readgamedata(){
+	size_t elements_written;
+	int n=0;
+	FILE *fp;
 
+	fp=fopen("gamedata.bin","rb");
+	if (fp==NULL){
+		return 0;
+	}else{
+		elements_written=fread(&c,sizeof(struct colors),1,fp);
+		if (elements_written==0){
+			return 0;
+		}else{
+            n++;
+		}
+
+		elements_written=fread(&carShape,sizeof(int),1,fp);
+		if (elements_written==0){
+			return 0;
+		}else{
+			n++;
+		}
+
+		elements_written=fread(&pp,sizeof(struct previous_player),1,fp);
+		if (elements_written==0){
+			return 0;
+		}else{
+			n++;
+		}
+
+		if (n==3){
+			return 1;
+		}else{
+			return 0;
+		}
+
+	}
+
+}
+
+int updategamedata(){
+	FILE *fp;
+
+	fp=fopen("gamedata.bin","wb");
+	if (fp==NULL){
+		return 0;
+	}else{
+		fwrite(&c,sizeof(struct colors),1,fp);
+		fwrite(&carShape,sizeof(int),1,fp);
+		fwrite(&pp,sizeof(struct previous_player),1,fp);
+		return 1;
+	}
+
+}
+
+void customize(){
+
+	int i=0;
+	while(1){
+		defaultColor();
+		cleardevice();
+		settextstyle(3,0,4);
+		outtextxy(x/2-50,100,"Customize");
+
+		settextstyle(3,0,3);
+		outtextxy(125,150,"Theme");
+		outtextxy(125,200,"Car Shape");
+		outtextxy(125,250,"Reset all Settings");
+		outtextxy(125,300,"Return");
+		circle(100,165,3);
+		circle(100,215,3);
+		circle(100,265,3);
+		circle(100,315,3);
+		setfillstyle(SOLID_FILL,c.textcolor);
+		floodfill(100,165+i*50,c.textcolor);
+
+		switch(getch()){
+			case 'W':
+			case 'w':
+				if(i!=0)
+					i--;
+				break;
+			case 's':
+			case 'S':
+				if(i!=3)
+					i++;
+				break;
+			case 'm':
+			case 'M':
+				mainmenu();
+				break;
+			case 13:
+				if (i==0)
+					customizeTheme();
+				else if(i==1)
+					customizeCar();
+				else if (i==2){
+					resetsettings();
+				}
+
+				else
+					mainmenu();
+				break;
+			default:
+				break;
+		}
+	}
+
+}
+
+void customizeTheme(){
+
+	struct colors c1;
+	int i=0,j;
+
+	c1=c;
+
+	while(1){
+		cleardevice();
+		defaultColor();
+		settextstyle(3,0,4);
+		outtextxy(x/2-50,100,"Theme");
+
+		settextstyle(3,0,3);
+		outtextxy(125,150,"Dark Ocean");
+		outtextxy(125,200,"Gray Mountain");
+		outtextxy(125,250,"Return");
+		circle(100,165,3);
+		circle(100,215,3);
+		circle(100,265,3);
+		setfillstyle(SOLID_FILL,c.textcolor);
+		floodfill(100,165+i*50,c.textcolor);
+
+
+		if (c.bgcolor==1){
+			outtextxy(400,150,"(Current Theme)");
+		}else{
+			outtextxy(400,200,"(Current Theme)");
+		}
+
+		switch(getch()){
+			case 'W':
+			case 'w':
+				if(i!=0)
+					i--;
+				break;
+			case 's':
+			case 'S':
+				if(i!=2)
+					i++;
+				break;
+			case 'm':
+			case 'M':
+				mainmenu();
+				break;
+			case 13:
+				if (i==2){
+					customize();
+				}else{
+					outtextxy(100,400,"Updating");
+					for (j=0;j<5;j++){
+						outtextxy(300+j*10,400,".");
+						delay(1000);
+					}
+					if (i==0){
+						
+
+						c.bgcolor=1;
+						c.textcolor=15;
+						c.ingame_bgcolor1=0;
+						c.ingame_bgcolor2=8;
+						c.ingame_textcolor=15;
+
+					}else if (i==1){
+	
+						c.bgcolor=15;//WHITE
+						c.textcolor=1;//BLUE
+						c.ingame_bgcolor1=7;//lightgray
+						c.ingame_bgcolor2=8;//darkgray
+						c.ingame_textcolor=15;//white
+
+					}
+
+					if (updategamedata()==0){
+						setcolor(RED);
+						outtextxy(100,425,"Error try again.");
+						c=c1;
+					}else{
+						outtextxy(100,425,"Successfully updated. Press any key.");
+					}
+					getch();
+				break;
+			default:
+				break;
+			}
+		}
+
+	}
+}
+
+void customizeCar(){
+
+	int carshape;
+	int i=0,j;
+
+	carshape=carShape;
+
+	while(1){
+		cleardevice();
+		defaultColor();
+		settextstyle(3,0,4);
+		outtextxy(x/2-50,100,"Car Shape");
+
+		settextstyle(3,0,3);
+		outtextxy(125,150,"Normal");
+		outtextxy(125,200,"Rectangle");
+		outtextxy(125,250,"Block");
+		outtextxy(125,300,"Circle");
+		outtextxy(125,350,"Return");
+
+		circle(100,165,3);
+		circle(100,215,3);
+		circle(100,265,3);
+		circle(100,315,3);
+		circle(100,365,3);
+
+		setfillstyle(SOLID_FILL,c.textcolor);
+		floodfill(100,165+i*50,c.textcolor);
+
+		outtextxy(400,150+carShape*50,"(Current Shape)");
+
+		switch(getch()){
+			case 'W':
+			case 'w':
+				if(i!=0)
+					i--;
+				break;
+			case 's':
+			case 'S':
+				if(i!=4)
+					i++;
+				break;
+			case 'm':
+			case 'M':
+				mainmenu();
+				break;
+			case 13:
+				if (i==4){
+					customize();
+				}else{
+					outtextxy(100,400,"Updating");
+					for (j=0;j<5;j++){
+						outtextxy(300+j*10,400,".");
+						delay(1000);
+					}
+					carShape=i;
+					if (updategamedata()==0){
+						setcolor(RED);
+						outtextxy(100,425,"Error try again.");
+						carShape=carshape;
+					}else{
+						outtextxy(100,425,"Successfully updated. Press any key.");
+					}
+					getch();
+
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+
+}
+
+void resetsettings(){
+	int i,carshape;
+	struct colors c1;
+	struct previous_player pp1;
+
+	carshape=carShape;
+	c1=c;
+	pp1=pp;
+
+	cleardevice();
+	defaultColor();
+	outtextxy(100,100,"Resetting all settings.");
+	for (i=0;i<5;i++){
+		outtextxy(300,100,".");
+		delay(1000);
+	}
+	c.bgcolor=1;//BLUE
+	c.textcolor=15;//WHITE
+	c.ingame_bgcolor1=0;//BLACK
+	c.ingame_bgcolor2=8;//darkgray
+	c.ingame_textcolor=15;//white
+
+	strcpy(pp.name,"Player");
+	pp.len=6;
+
+	carShape=0;
+
+	if (updategamedata()==0){
+		setcolor(RED);
+		outtextxy(100,125,"Error try again.");
+		carShape=carshape;
+		c=c1;
+		pp=pp1;
+	}else{
+		outtextxy(100,125,"Successfully updated. Press any key.");
+	}
+	getch();
+
+}
 
 
 
